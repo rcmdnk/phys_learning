@@ -1,1 +1,3 @@
+export TF_CPP_MIN_LOG_LEVEL=3 # FATAL
+unalias poetry >&/dev/null
 alias poetry="python3 $(which poetry)" # for python2 environment...

@@ -13,6 +13,7 @@ def input_check(model, x_train, x_test, y_train, y_test,
                 epochs=1000):
     if verbose > 0:
         model.summary()
+
     model.compile(optimizer='adam', loss='binary_crossentropy',
                   metrics=['accuracy'])
     early_stopping = EarlyStopping(monitor='val_loss', verbose=verbose,

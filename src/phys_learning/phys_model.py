@@ -86,17 +86,3 @@ class PhysModel():
                 val = stack.pop()
                 stack[-1] = PhysModel.OPERATORS[i](stack[-1], val)
         return stack[0]
-
-
-
-pm = PhysModel(16, 5)
-pm.make_rpn()
-num = pm.get_rpn()
-formula = pm.get_formula()
-data = np.array([[1, 2, 3, 4, 5, 6, 7, 8], [8, 7, 6, 5, 4, 3, 2, 1]])
-print(data)
-print(num)
-print(formula)
-
-result = pm.calc(data)
-print(result)
