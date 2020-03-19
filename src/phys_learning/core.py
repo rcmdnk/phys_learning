@@ -127,7 +127,11 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
             )[1]
             print('{:.3f} {}'.format(acc, PhysModel.VALUES[i]))
 
-    def oneshot(self, verbose=None):
+    def oneshot(self, verbose=None, i=0):
+        print("oneshot", i)
+        import keras.backend.tensorflow_backend as tb
+        tb._SYMBOLIC_SCOPE.value = True
+
         if verbose is None:
             verbose = 0
         n = np.random.randint(1, 16)
@@ -140,11 +144,21 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
                                     layer=3, verbose=verbose,
                                     epochs=self.epochs,
                                     name=self.name + "_oneshot")[1]
-        print('{:.3f} {}'.format(acc, pm.get_formula()))
+        print('{} {:.3f} {}'.format(i, acc, pm.get_formula()))
 
     def multishot(self, n=100, verbose=None):
-        for i in range(n):
-            self.oneshot(verbose)
+        #for i in range(n):
+        #    self.oneshot(verbose)
+
+        from concurrent import futures
+        print("start threads")
+        with futures.ThreadPoolExecutor(max_workers=4) as executor:
+            my_futures = [executor.submit(self.oneshot, verbose=verbose, i=i)
+                          for i in range(n)]
+            for f in futures.as_completed(my_futures):
+                print("end thread")
+                print(f.result())
+        print("end all thread")
 
     @staticmethod
     def get_data(data, is_signal):
