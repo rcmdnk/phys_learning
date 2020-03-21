@@ -87,20 +87,22 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         self.mass_pt()
 
     def direct(self):
-        n_input_check_wrapper(self.x_train, self.x_test, self.y_train,
-                              self.y_test, self.x_test, node=8,
-                              layer=1, verbose=self.verbose,
-                              epochs=self.epochs,
-                              name=self.name + "_direct")
+        acc = n_input_check_wrapper(self.x_train, self.x_test, self.y_train,
+                                    self.y_test, self.x_test, node=8,
+                                    layer=3, verbose=self.verbose,
+                                    epochs=self.epochs,
+                                    name=self.name + "_direct")[1]
+        print('{:.3f} {}'.format(acc, 'px1, py1, pz1, e1, px2, py2, pz2, e2'))
 
     def mass_only(self):
         x_train = mass(self.x_train[:, 0:4], self.x_train[:, 4:8])
         x_test = mass(self.x_test[:, 0:4], self.x_test[:, 4:8])
-        n_input_check_wrapper(x_train, x_test, self.y_train,
-                              self.y_test, self.x_test, node=8,
-                              layer=1, verbose=self.verbose,
-                              epochs=self.epochs,
-                              name=self.name + "_mass_only")
+        acc = n_input_check_wrapper(x_train, x_test, self.y_train,
+                                    self.y_test, self.x_test, node=8,
+                                    layer=3, verbose=self.verbose,
+                                    epochs=self.epochs,
+                                    name=self.name + "_mass_only")[1]
+        print('{:.3f} {}'.format(acc, 'm12'))
 
     def mass_pt(self):
         x_train = np.array([mass(self.x_train[:, 0:4], self.x_train[:, 4:8]),
@@ -109,11 +111,12 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         x_test = np.array([mass(self.x_test[:, 0:4], self.x_test[:, 4:8]),
                            pt(self.x_test[:, 0], self.x_test[:, 1]),
                            pt(self.x_test[:, 4], self.x_test[:, 5])]).T
-        n_input_check_wrapper(x_train, x_test, self.y_train,
-                              self.y_test, self.x_test, node=8,
-                              layer=1, verbose=self.verbose,
-                              epochs=self.epochs,
-                              name=self.name + "_mass_pt")
+        acc = n_input_check_wrapper(x_train, x_test, self.y_train,
+                                    self.y_test, self.x_test, node=8,
+                                    layer=3, verbose=self.verbose,
+                                    epochs=self.epochs,
+                                    name=self.name + "_mass_pt")[1]
+        print('{:.3f} {}'.format(acc, 'm12, pt1, pt2'))
 
     def single(self):
         for i in range(8):
@@ -121,7 +124,7 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
             x_test = self.x_test[:, i:i + 1]
             acc = n_input_check_wrapper(
                 x_train, x_test, self.y_train, self.y_test,
-                self.x_test, node=8, layer=1, verbose=self.verbose,
+                self.x_test, node=8, layer=3, verbose=self.verbose,
                 epochs=self.epochs, name=self.name + "_" + PhysModel.VALUES[i]
             )[1]
             print('{:.3f} {}'.format(acc, PhysModel.VALUES[i]))
@@ -176,17 +179,16 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
             model_list[acc] = rpn
             if i != 0 and i % 100 == 0:
                 print(datetime.datetime.now())
-                print("{} Top 5 value combination list at {}---".format(
+                print("{} Top 5 value combination list at {}".format(
                     datetime.datetime.now(), i))
                 acc_sorted = sorted(model_list.items(),
-                                    key=lambda x: x[0])
+                                    key=lambda x: -x[0])
                 pm = PhysModel(1)
                 for x in acc_sorted[:5]:
                     formula = []
                     for r in x[1]:
                         pm.set_rpn(r)
                         formula.append(pm.get_formula())
-                    pm.set_rpn = x[1]
                     print('{}: '.format(x[0]), end='')
                     for r in rpn:
                         print('{}, '.format(r), end='')
