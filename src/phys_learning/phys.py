@@ -4,15 +4,15 @@ from .plot import histTwo
 
 def mass(p1, p2):
     if type(p1) == np.ndarray and p1.ndim >= 2:
-        e = p1[:, 3] + p2[:, 3]
         x = p1[:, 0] + p2[:, 0]
         y = p1[:, 1] + p2[:, 1]
         z = p1[:, 2] + p2[:, 2]
+        e = p1[:, 3] + p2[:, 3]
     else:
-        e = p1[3] + p2[3]
         x = p1[0] + p2[0]
         y = p1[1] + p2[1]
         z = p1[2] + p2[2]
+        e = p1[3] + p2[3]
     return np.sqrt(e**2 - x**2 - y**2 - z**2)
 
 

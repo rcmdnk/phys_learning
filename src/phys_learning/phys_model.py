@@ -61,6 +61,9 @@ class PhysModel():
             self.rpn.append(ope - self.n_operators)
             stack -= 1
 
+    def set_rpn(self, rpn):
+        self.rpn = rpn
+
     def get_rpn(self):
         return self.rpn
 
@@ -77,6 +80,8 @@ class PhysModel():
 
     def calc(self, data):
         data = np.array(data, dtype='float')
+        if data.ndim == 1:
+            data = np.array([data])
 
         stack = []
         for i in self.rpn:

@@ -14,7 +14,7 @@ from .model import n_input_check_wrapper
 class PhysLearning():
     """Phys Learning"""
 
-    def __init__(self, signal, bg, name='test', epochs=1000, verbose=1,
+    def __init__(self, signal, bg, name='test', epochs=1000, verbose=0,
                  test_size=0.2):
         self.signal = PhysLearning.get_data(signal, 1)
         self.bg = PhysLearning.get_data(bg, 0)
@@ -53,6 +53,7 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         elif cmd == "device":
             self.show_devices()
         elif cmd == "basic_plot":
+            self.verbose = 1
             self.basic_plot()
         elif cmd == "single":
             self.single()
@@ -114,22 +115,18 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
                               epochs=self.epochs,
                               name=self.name + "_mass_pt")
 
-    def single(self, verbose=None):
-        if verbose is None:
-            verbose = 0
+    def single(self):
         for i in range(8):
             x_train = self.x_train[:, i:i + 1]
             x_test = self.x_test[:, i:i + 1]
             acc = n_input_check_wrapper(
                 x_train, x_test, self.y_train, self.y_test,
-                self.x_test, node=8, layer=1, verbose=verbose,
+                self.x_test, node=8, layer=1, verbose=self.verbose,
                 epochs=self.epochs, name=self.name + "_" + PhysModel.VALUES[i]
             )[1]
             print('{:.3f} {}'.format(acc, PhysModel.VALUES[i]))
 
-    def oneshot(self, verbose=None):
-        if verbose is None:
-            verbose = 0
+    def oneshot(self):
         n = np.random.randint(1, 16)
         pm = PhysModel(n)
         pm.make_rpn()
@@ -137,14 +134,65 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         x_test = pm.calc(self.x_test)
         acc = n_input_check_wrapper(x_train, x_test, self.y_train,
                                     self.y_test, self.x_test, node=8,
-                                    layer=3, verbose=verbose,
+                                    layer=3, verbose=self.verbose,
                                     epochs=self.epochs,
                                     name=self.name + "_oneshot")[1]
-        print('{:.3f} {}'.format(acc, pm.get_formula()))
+        print('{:.3f} {:30s} {}'.format(acc, str(pm.get_rpn()),
+                                        pm.get_formula()))
 
-    def multishot(self, n=100, verbose=None):
-        for i in range(n):
-            self.oneshot(verbose)
+    def random_shot(self, nvalue=3, max_val=16):
+        x_train = []
+        x_test = []
+        rpn = []
+        formula = []
+        for i in range(nvalue):
+            n = np.random.randint(1, max_val)
+            pm = PhysModel(n)
+            pm.make_rpn()
+            rpn.append(pm.get_rpn())
+            formula.append(pm.get_formula())
+            x_train.append(pm.calc(self.x_train))
+            x_test.append(pm.calc(self.x_test))
+
+        x_train = np.concatenate(x_train, 1)
+        x_test = np.concatenate(x_test, 1)
+
+        acc = n_input_check_wrapper(x_train, x_test, self.y_train,
+                                    self.y_test, self.x_test, node=8,
+                                    layer=3, verbose=self.verbose,
+                                    epochs=self.epochs,
+                                    name=self.name + "_nvalue")[1]
+        if self.verbose:
+            print('{:.3f} {} {}'.format(acc, rpn, formula))
+        return acc, rpn
+
+    def multishot(self, shot=1000, nvalue=3, max_val=16):
+        import datetime
+        print('{} Start multishot: shot={}, nvalue={}, max_val={}'.format(
+            datetime.datetime.now(), shot, nvalue, max_val))
+        model_list = {}
+        for i in range(shot):
+            acc, rpn = self.random_shot(nvalue, max_val)
+            model_list[acc] = rpn
+            if i != 0 and i % 100 == 0:
+                print(datetime.datetime.now())
+                print("{} Top 5 value combination list at {}---".format(
+                    datetime.datetime.now(), i))
+                acc_sorted = sorted(model_list.items(),
+                                    key=lambda x: x[0])
+                pm = PhysModel(1)
+                for x in acc_sorted[:5]:
+                    formula = []
+                    for r in x[1]:
+                        pm.set_rpn(r)
+                        formula.append(pm.get_formula())
+                    pm.set_rpn = x[1]
+                    print('{}: '.format(x[0]), end='')
+                    for r in rpn:
+                        print('{}, '.format(r), end='')
+                    for f in formula:
+                        print('{}, '.format(f), end='')
+                    print('')
 
     @staticmethod
     def get_data(data, is_signal):

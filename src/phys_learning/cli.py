@@ -22,13 +22,16 @@ class CliObject(object):
         """Show version."""
         PhysLearning.version()
 
-    def run(self, cmd=None, nshot=10):
+    def run(self, cmd=None, verbose=0,
+            signal='events/my_z.txt', bg='events/my_jj.txt'):
         """Main command"""
-        PhysLearning('events/my_z.txt', 'events/my_jj.txt').run(cmd)
+        PhysLearning(signal=signal, bg=bg, verbose=verbose).run(cmd)
 
-    def multishot(self, nshot=10):
+    def multishot(self, shot=10, nvalue=3, max_val=16, verbose=0,
+                  signal='events/my_z.txt', bg='events/my_jj.txt'):
         """Multishot"""
-        PhysLearning('events/my_z.txt', 'events/my_jj.txt').multishot(nshot)
+        PhysLearning(signal=signal, bg=bg, verbose=verbose).multishot(
+            shot, nvalue, max_val)
 
 
 def cli():
