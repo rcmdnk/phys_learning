@@ -1,5 +1,5 @@
 """
-    Core module to provides gcpm functions.
+    Core module to provides cli functions.
 """
 
 import numpy as np
@@ -173,24 +173,35 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         import datetime
         print('{} Start multishot: shot={}, nvalue={}, max_val={}'.format(
             datetime.datetime.now(), shot, nvalue, max_val))
-        model_list = {}
+        top_history = []
+        model_list = []
         for i in range(shot):
             acc, rpn = self.random_shot(nvalue, max_val)
-            model_list[acc] = rpn
+            if len(model_list) < 5:
+                model_list.append((acc, rpn))
+                model_list.sort(key=lambda x: -x[0])
+            else:
+                if model_list[-1][0] < acc:
+                    model_list.pop()
+                    model_list.append((acc, rpn))
+                    model_list.sort(key=lambda x: -x[0])
             if i != 0 and i % 100 == 0:
+                top_history.append(model_list[0][0])
                 print(datetime.datetime.now())
+                print("Top accuracy history: ", end='')
+                for h in top_history:
+                    print('{:.3f}, '.format(h), end='')
+                print('')
                 print("{} Top 5 value combination list at {}".format(
                     datetime.datetime.now(), i))
-                acc_sorted = sorted(model_list.items(),
-                                    key=lambda x: -x[0])
                 pm = PhysModel(1)
-                for x in acc_sorted[:5]:
+                for x in model_list:
                     formula = []
                     for r in x[1]:
                         pm.set_rpn(r)
                         formula.append(pm.get_formula())
-                    print('{}: '.format(x[0]), end='')
-                    for r in rpn:
+                    print('{:.3f}: '.format(x[0]), end='')
+                    for r in x[1]:
                         print('{}, '.format(r), end='')
                     for f in formula:
                         print('{}, '.format(f), end='')
