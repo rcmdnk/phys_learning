@@ -20,7 +20,7 @@ def pt(x, y):
     return np.sqrt(x**2 + y**2)
 
 
-def histTwoPhys(data1, data2, name="phys"):
+def hist_two_phys(data1, data2, name="phys"):
     histTwo(mass(data1[:, 0:4], data1[:, 4:8]),
             mass(data2[:, 0:4], data2[:, 4:8]),
             80, [0, 200], name=name + '_mjj', xlabel='$M_{jj}$ (GeV)',

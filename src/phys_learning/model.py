@@ -5,7 +5,7 @@ from keras.layers import Dense
 from keras.callbacks import EarlyStopping
 
 from .plot import plotTwo
-from .phys import histTwoPhys
+from .phys import hist_two_phys
 
 
 def input_check(model, x_train, x_test, y_train, y_test,
@@ -73,8 +73,8 @@ def prediction_check(model, x_test, y_test, x_test_full,
     sig_bg = np.array(sig_bg)
     bg_sig = np.array(bg_sig)
     bg_bg = np.array(bg_bg)
-    histTwoPhys(sig_sig, sig_bg, name + "_sig_check")
-    histTwoPhys(bg_sig, bg_bg, name + "_bg_check")
+    hist_two_phys(sig_sig, sig_bg, name + "_sig_check")
+    hist_two_phys(bg_sig, bg_bg, name + "_bg_check")
 
 
 def n_input_check_wrapper(x_train, x_test, y_train, y_test, x_test_full,

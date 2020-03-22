@@ -6,7 +6,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from .__init__ import __version__
 from .__init__ import __program__
-from .phys import pt, mass, histTwoPhys
+from .phys import pt, mass, hist_two_phys
 from .phys_model import PhysModel
 from .model import n_input_check_wrapper
 
@@ -78,7 +78,7 @@ Usage: phys_learning [--config=<config>] [--test=<test>] <command>
         print(device_lib.list_local_devices())
 
     def basic_plot(self):
-        histTwoPhys(self.signal, self.bg, self.name + "_orig")
+        hist_two_phys(self.signal, self.bg, self.name + "_orig")
 
     def basic_test(self):
         self.basic_plot()
