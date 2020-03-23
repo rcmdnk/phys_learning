@@ -1,4 +1,5 @@
 import numpy as np
+from numbers import Number
 
 
 class Formula():
@@ -10,7 +11,7 @@ class Formula():
         if var_labels is not None:
             self.var_labels = var_labels
         else:
-            self.var_lables = []
+            self.var_labels = []
             for i in n_values:
                 self.var_labels.append('x{}'.format(i))
 
@@ -19,9 +20,14 @@ class Formula():
         self.rpn = []
 
         self.operators = [lambda x, y: x + y, lambda x, y: x - y,
-                          lambda x, y: x * y, lambda x, y: x / y]
+                          lambda x, y: x * y, lambda x, y: self.div(x, y)]
         self.symbols = ["+", "-", "*", "/"]
         self.n_operators = len(self.operators)
+
+    def div(self, x, y):
+        if isinstance(x, Number):
+            return 0 if y == 0 else x / y
+        return np.divide(x, y, out=np.zeros_like(x), where=y!=0)
 
     def set_seed(self, seed=0):
         self.seed = seed
@@ -48,11 +54,11 @@ class Formula():
             self.rpn.append(ope - self.n_operators)
             stack -= 1
 
-    def formula(self):
+    def get_formula(self):
         stack = []
         for i in self.rpn:
             if i >= 0:
-                stack.append(self.var_lables[i])
+                stack.append(self.var_labels[i])
             else:
                 v2 = stack.pop()
                 v1 = stack.pop()

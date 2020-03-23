@@ -20,10 +20,11 @@ class CliObject(object):
         print("%s: %s" % (__program__, __version__))
 
     def run(self, cmd=None, verbose=0, shot=10, nvalue=3,
+            method='DNN',
             signal='events/my_z.txt', bg='events/my_jj.txt'):
         """Main command"""
-        PhysBinary(signal=signal, bg=bg,
-                   shot=shot, nvalue=nvalue, verbose=verbose,).run(cmd)
+        PhysBinary(signal=signal, bg=bg, shot=shot, nvalue=nvalue,
+                   method=method, verbose=verbose,).run(cmd)
 
 
 def cli():
