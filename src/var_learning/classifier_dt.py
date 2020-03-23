@@ -3,11 +3,8 @@ from .classifier import Classifier
 
 
 class DecisionTree(Classifier):
-    def __init__(self, x_train=None, x_test=None, y_train=None, y_test=None,
-                 name="test", model=None, seed=None, verbose=0,
-                 max_depth=3):
-        super().__init__(x_train, x_test, y_train, y_test, name, model,
-                         seed, verbose)
+    def __init__(self, max_depth=3, **kw):
+        super().__init__(**kw)
         self.max_depth = max_depth
 
     def new_model(self):

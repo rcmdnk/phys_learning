@@ -1,72 +1,57 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
-from .two_particles import TwoParticles
-from .phys import hist_two_phys, mass, pt
 from .formula import Formula
 
 
-class PhysBinary():
-    def __init__(self, signal, bg, name='test', test_size=0.2,
-                 nvalue=3, shot=1000,
-                 seed=None, model=None, method='DNN',
-                 layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
-                 activation_out='sigmoid',
-                 optimizer='adam', loss='binary_crossentropy',
-                 metrics=['accuracy'],
-                 monitor='val_loss', patience=2,
-                 epochs=1000, validation_split=0.1,
-                 max_depth=3, n_estimators=50, learning_rate=1.0,
-                 algorithm='SAMME.R',
-                 verbose=0):
+class VarLearning():
+    def __init__(self, name='test', data=None, n_target=1,
+                 test_size=0.2, var_labels=None, nvalue=3, shot=1,
+                 method='DNN', seed=None, verbose=0, **kw):
         self.name = name
+        self.n_target = n_target
+        self.test_size = test_size
+        self.var_labels = var_labels
+
         self.nvalue = nvalue
         self.shot = shot
-
-        self.seed = seed
-        self.model = model
         self.method = method
 
-        self.layers = layers
-        self.activation_out = activation_out
-        self.optimizer = optimizer
-        self.loss = loss
-        self.metrics = metrics
-        self.monitor = monitor
-        self.patience = patience
-        self.epochs = epochs
-        self.validation_split = validation_split
+        self.seed = seed
+        self.verbose = verbose
 
-        self.max_depth = max_depth
-        self.n_estimators = n_estimators
-        self.learning_rate = learning_rate
-        self.algorithm = algorithm
+        self.kw = kw
 
         self.hist = None
         self.score = None
-        self.verbose = verbose
 
-        self.signal = TwoParticles(signal, 1)
-        self.bg = TwoParticles(bg, 0)
-
-        self.test_size = test_size
-        data = np.concatenate([self.signal.data, self.bg.data])
-        self.x_data = data[:, 0:data[0].size - 1]
-        self.y_data = data[:, data[0].size - 1:data[0].size]
-        self.set_data()
+        self.set_data(data)
 
         self.classifier = None
 
-        self.cmd = {'original_hist': self.original_hist,
-                    'direct': self.direct,
-                    'mass': self.mass,
-                    'mass_pt': self.mass_pt,
+        self.cmd = {'direct': self.direct,
                     'single': self.single,
                     'random_shot': self.random_shot,
                     'multishot': self.multishot}
 
-    def set_data(self):
+    def set_data(self, data):
+        if data is None:
+            self.data = None
+            return
+        if type(data) == str:
+            with open(data) as f:
+                data = [line.split() for line in f.readlines()]
+        self.data = np.array(data)
+        self.separate_data()
+
+        self.formula = Formula(n_values=self.data[0].size - self.n_target,
+                               var_labels=self.var_labels)
+
+    def separate_data(self):
+        x_data = self.data[:, 0: -1 * self.n_target]
+        y_data = self.data[:, -1 * self.n_target:self.data[0].size]
+
         self.x_train, self.x_test, self.y_train, self.y_test \
-            = train_test_split(self.x_data, self.y_data,
+            = train_test_split(x_data, y_data,
                                test_size=self.test_size, shuffle=True)
         self.y_train_array = np.array([x[0] for x in self.y_train])
         self.y_test_array = np.array([x[0] for x in self.y_test])
@@ -79,70 +64,40 @@ class PhysBinary():
                 if self.seed is None:
                     self.seed = 1
                 for i in range(self.shot):
-                    self.set_data()
+                    self.separate_data()
                     self.cmd[cmd]()
                     self.seed += 1
         else:
             raise RuntimeError('Command: {} is not available'.format(cmd))
 
-    def original_hist(self):
-        hist_two_phys(self.signal.data, self.bg.data, self.name + "_original")
-
     def make_classifier(self, name, x_train, x_test):
+        y_train = self.y_train_array
+        y_test = self.y_test_array
         if self.method.lower() == 'dnn':
-            from .classifier_dnn import DNN
-            self.classifier = DNN(
-                x_train=x_train, x_test=x_test,
-                y_train=self.y_train, y_test=self.y_test,
-                name=name, seed=self.seed, model=None,
-                layers=self.layers,
-                activation_out=self.activation_out,
-                optimizer=self.optimizer, loss=self.loss,
-                metrics=self.metrics,
-                monitor=self.monitor, patience=self.patience,
-                epochs=self.epochs,
-                validation_split=self.validation_split,
-                verbose=self.verbose)
+            from var_learning.classifier_dnn import DNN as Classifier
+            y_train = self.y_train
+            y_test = self.y_test
         elif self.method.lower() in ('decisiontree', 'dt'):
-            from .classifier_dt import DecisionTree
-            self.classifier = DecisionTree(
-                x_train=x_train, x_test=x_test,
-                y_train=self.y_train, y_test=self.y_test,
-                name=name, seed=self.seed, model=None,
-                max_depth=self.max_depth, verbose=self.verbose)
+            from var_learning.classifier_dt import DecisionTree as Classifier
         elif self.method.lower() in ('randomforest', 'rf'):
-            from .classifier_rf import RandomForest
-            self.classifier = RandomForest(
-                x_train=x_train, x_test=x_test,
-                y_train=self.y_train, y_test=self.y_test,
-                name=name, seed=self.seed, model=None,
-                max_depth=self.max_depth, verbose=self.verbose)
+            from var_learning.classifier_rf import RandomForest as Classifier
         elif self.method.lower() in ('ada', 'AdaBoost'):
-            from .classifier_ada import AdaBoost
-            self.classifier = AdaBoost(
-                x_train=x_train, x_test=x_test,
-                y_train=self.y_train_array, y_test=self.y_test_array,
-                name=name, seed=self.seed, model=None,
-                max_depth=self.max_depth, n_estimators=self.n_estimators,
-                learning_rate=self.learning_rate, algorithm=self.algorithm,
-                verbose=self.verbose)
+            from var_learning.classifier_ada import AdaBoost as Classifier
         elif self.method.lower() in ('grad', 'gradientboosting'):
-            from .classifier_grad import GradientBoosting
-            self.classifier = GradientBoosting(
-                x_train=x_train, x_test=x_test,
-                y_train=self.y_train_array, y_test=self.y_test_array,
-                name=name, seed=self.seed, model=None,
-                max_depth=self.max_depth, n_estimators=self.n_estimators,
-                learning_rate=self.learning_rate,
-                verbose=self.verbose)
+            from var_learning.classifier_grad import GradientBoosting as \
+                Classifier
         else:
             raise RuntimeError('Classifier method: {} is not available'.format(
                 self.method))
+        self.classifier = Classifier(
+            x_train=x_train, x_test=x_test, y_train=y_train, y_test=y_test,
+            name=name, seed=self.seed, verbose=self.verbose,
+            **self.kw)
 
     def direct(self):
         self.make_classifier(self.name + "_direct", self.x_train, self.x_test)
         acc = self.classifier.run_all()
-        values = ', '.join(self.signal.var_labels)
+        values = ', '.join(self.formula.var_labels)
         print('{:.3f} {}'.format(acc, values))
         return acc, values
 
@@ -171,14 +126,14 @@ class PhysBinary():
 
     def single(self):
         acc = []
-        value = []
-        for i in range(self.train[0].size):
+        values = []
+        for i in range(self.x_train[0].size):
             x_train = self.x_train[:, i:i + 1]
             x_test = self.x_test[:, i:i + 1]
-            self.make_classifier(self.name + "_" + self.signal.var_labels[i],
-                            x_train, x_test)
+            self.make_classifier(self.name + "_" + self.formula.var_labels[i],
+                                 x_train, x_test)
             acc.append(self.classifier.run_all())
-            value.append(self.signal.var_labels[i])
+            values.append(self.formula.var_labels[i])
             print('{:.3f} {}'.format(acc[-1], values[-1]))
         return acc, values
 
@@ -191,7 +146,7 @@ class PhysBinary():
             formula.append(
                 Formula(n_values=self.x_train[0].size, min_use=1,
                         max_use=self.x_train[0].size * 2,
-                        var_labels=self.signal.var_labels))
+                        var_labels=self.formula.var_labels))
             formula[-1].make_rpn()
             x_train.append(formula[-1].calc(self.x_train))
             x_test.append(formula[-1].calc(self.x_test))
@@ -239,26 +194,3 @@ class PhysBinary():
                     for f in x[2]:
                         print('{}, '.format(f.get_formula()), end='')
                     print('')
-
-    def prediction_check(self, model, x_test):
-        predictions = model.predict(x_test)
-        sig_sig = []
-        sig_bg = []
-        bg_sig = []
-        bg_bg = []
-        for i in range(predictions.size):
-            if y_test[i] == 1:
-                if predictions[i] > 0.5:
-                    sig_sig.append(self.x_test[i])
-                else:
-                    sig_bg.append(self.x_test[i])
-            elif predictions[i] > 0.5:
-                bg_sig.append(self.x_test[i])
-            else:
-                bg_bg.append(self.x_test[i])
-        sig_sig = np.array(sig_sig)
-        sig_bg = np.array(sig_bg)
-        bg_sig = np.array(bg_sig)
-        bg_bg = np.array(bg_bg)
-        hist_two_phys(sig_sig, sig_bg, name + "_sig_check")
-        hist_two_phys(bg_sig, bg_bg, name + "_bg_check")

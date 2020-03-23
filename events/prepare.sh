@@ -11,3 +11,6 @@ cd ../
 
 ./lhe2txt.py MG5_aMC_v2_7_2/my_z/Events/run_01/unweighted_events.lhe > my_z.txt
 ./lhe2txt.py MG5_aMC_v2_7_2/my_jj/Events/run_01/unweighted_events.lhe > my_jj.txt
+
+while read line;do echo $line 1;done < my_z.txt > data.txt
+while read line;do echo $line 0;done < my_jj.txt >> data.txt

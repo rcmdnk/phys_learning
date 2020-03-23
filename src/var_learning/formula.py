@@ -12,7 +12,7 @@ class Formula():
             self.var_labels = var_labels
         else:
             self.var_labels = []
-            for i in n_values:
+            for i in range(n_values):
                 self.var_labels.append('x{}'.format(i))
 
         self.seed = seed

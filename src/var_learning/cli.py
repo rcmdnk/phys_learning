@@ -6,7 +6,7 @@
 import sys
 import fire
 from .__init__ import __version__, __program__
-from .core import PhysLearning
+from .core import VarLearning
 
 
 class CliObject(object):
@@ -19,15 +19,14 @@ class CliObject(object):
         """Show version."""
         print("%s: %s" % (__program__, __version__))
 
-    def run(self, cmd=None, signal='events/my_z.txt', bg='events/my_jj.txt',
-            **kw):
+    def run(self, cmd=None, data='events/data.txt', **kw):
         """Main command"""
-        PhysLearning(signal=signal, bg=bg, **kw).run(cmd)
+        VarLearning(data=data, **kw).run(cmd)
 
 
 def cli():
     """Main command line tool function."""
     if len(sys.argv) <= 1 or sys.argv[1] in ['-h', '--help', 'help']:
-        print("%s: %s" % (__program__, 'Usage: phys_learning run <cmd>'))
+        print("%s: %s" % (__program__, 'Usage: var_learning run <cmd>'))
     else:
         fire.Fire(CliObject)

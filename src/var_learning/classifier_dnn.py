@@ -5,16 +5,12 @@ from .classifier import Classifier
 
 
 class DNN(Classifier):
-    def __init__(self, x_train=None, x_test=None, y_train=None, y_test=None,
-                 name="test", model=None, seed=None, verbose=0,
-                 layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
-                 activation_out='sigmoid',
-                 optimizer='adam', loss='binary_crossentropy',
-                 metrics=['accuracy'],
-                 monitor='val_loss', patience=2,
-                 epochs=1000, validation_split=0.1):
-        super().__init__(x_train, x_test, y_train, y_test, name, model,
-                         verbose)
+    def __init__(self, layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
+                 activation_out='sigmoid', optimizer='adam',
+                 loss='binary_crossentropy', metrics=['accuracy'],
+                 monitor='val_loss', patience=2, epochs=1000,
+                 validation_split=0.1, **kw):
+        super().__init__(**kw)
         self.layers = layers
         self.activation_out = activation_out
         self.optimizer = optimizer

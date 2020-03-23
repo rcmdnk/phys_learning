@@ -20,6 +20,7 @@ pytest = "^3.0"
 
 [tool.poetry.scripts]
 phys_learning = "phys_learning:main"
+var_learning = "var_learning:main"
 [build-system]
 requires = ["poetry>=0.12"]
 build-backend = "poetry.masonry.api"
