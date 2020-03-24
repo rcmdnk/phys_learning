@@ -2,7 +2,12 @@
 name = "phys_learning"
 version = "0.1.0"
 description = ""
+repository = "https://github.com/mickaneda/phys_learning"
+homepage = "https://github.com/mickaneda/phys_learning"
 authors = ["Michiru Kaneda <Michiru.Kaneda@gmail.com>"]
+readme = "README.md"
+license = "Apache-2.0"
+keywords = ['ml', 'machine learning', 'physics']
 
 [tool.poetry.dependencies]
 python = "^3.7"
