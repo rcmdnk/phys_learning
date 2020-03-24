@@ -1,5 +1,5 @@
 import numpy as np
-from .plot import histTwo
+from var_learning.plot import hist_two
 
 
 def mass(p1, p2):
@@ -21,26 +21,26 @@ def pt(x, y):
 
 
 def hist_two_phys(data1, data2, name="phys"):
-    histTwo(mass(data1[:, 0:4], data1[:, 4:8]),
-            mass(data2[:, 0:4], data2[:, 4:8]),
-            80, [0, 200], name=name + '_mjj', xlabel='$M_{jj}$ (GeV)',
-            label1='signal', label2='bg')
-    histTwo(data1[:, 0], data2[:, 0], 100, [0, 500],
-            name + '_xj1', '$x_{j1}$ (GeV)',
-            label1='signal', label2='bg')
-    histTwo(data1[:, 4], data2[:, 4], 100, [0, 500],
-            name + '_xj2', '$x_{j2}$ (GeV)',
-            label1='signal', label2='bg')
-    histTwo(data1[:, 3], data2[:, 3], 100, [0, 500],
-            name + '_Ej1', '$E_{j1}$ (GeV)',
-            label1='signal', label2='bg')
-    histTwo(data1[:, 7], data2[:, 7], 100, [0, 500],
-            name + '_Ej2', '$E_{j2}$ (GeV)',
-            label1='signal', label2='bg')
+    hist_two(mass(data1[:, 0:4], data1[:, 4:8]),
+             mass(data2[:, 0:4], data2[:, 4:8]),
+             80, [0, 200], name=name + '_mjj', xlabel='$M_{jj}$ (GeV)',
+             label1='signal', label2='bg')
+    hist_two(data1[:, 0], data2[:, 0], 100, [0, 500],
+             name + '_xj1', '$x_{j1}$ (GeV)',
+             label1='signal', label2='bg')
+    hist_two(data1[:, 4], data2[:, 4], 100, [0, 500],
+             name + '_xj2', '$x_{j2}$ (GeV)',
+             label1='signal', label2='bg')
+    hist_two(data1[:, 3], data2[:, 3], 100, [0, 500],
+             name + '_Ej1', '$E_{j1}$ (GeV)',
+             label1='signal', label2='bg')
+    hist_two(data1[:, 7], data2[:, 7], 100, [0, 500],
+             name + '_Ej2', '$E_{j2}$ (GeV)',
+             label1='signal', label2='bg')
 
-    histTwo(pt(data1[:, 0], data1[:, 1]), pt(data2[:, 0], data2[:, 1]),
-            100, [0, 500], name + '_ptj1', '$P_{Tj1}$ (GeV)',
-            label1='signal', label2='bg')
-    histTwo(pt(data1[:, 4], data1[:, 5]), pt(data2[:, 4], data2[:, 5]),
-            100, [0, 500], name + '_ptj2', '$P_{Tj2}$ (GeV)',
-            label1='signal', label2='bg')
+    hist_two(pt(data1[:, 0], data1[:, 1]), pt(data2[:, 0], data2[:, 1]),
+             100, [0, 500], name + '_ptj1', '$P_{Tj1}$ (GeV)',
+             label1='signal', label2='bg')
+    hist_two(pt(data1[:, 4], data1[:, 5]), pt(data2[:, 4], data2[:, 5]),
+             100, [0, 500], name + '_ptj2', '$P_{Tj2}$ (GeV)',
+             label1='signal', label2='bg')

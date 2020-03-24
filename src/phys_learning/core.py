@@ -2,6 +2,7 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 from var_learning.core import VarLearning
 from var_learning.formula import Formula
+from var_learning.plot import hist_two
 from .two_particles import TwoParticles
 from .phys import hist_two_phys, mass, pt
 
@@ -10,6 +11,7 @@ class PhysLearning(VarLearning):
     def __init__(self, signal=None, bg=None,
                  var_labels=["px1", "py1", "pz1", "e1",
                              "px2", "py2", "pz2", "e2"],
+                 json=None,
                  **kw):
         data = kw['data'] if 'data' in kw else None
         if data is None:
@@ -25,6 +27,7 @@ class PhysLearning(VarLearning):
         super().__init__(data=data, var_labels=var_labels, **kw)
 
         self.cmd = {'original_hist': self.original_hist,
+                    'my_hist': self.my_hist,
                     'direct': self.direct,
                     'mass': self.mass,
                     'mass_pt': self.mass_pt,
@@ -32,8 +35,33 @@ class PhysLearning(VarLearning):
                     'random_shot': self.random_shot,
                     'multishot': self.multishot}
 
+        self.json = json
+
     def original_hist(self):
         hist_two_phys(self.signal.data, self.bg.data, self.name + "_original")
+
+    def my_hist(self):
+        import json
+        from collections import OrderedDict
+        is_signal = np.array(self.data[:, -1], bool)
+        signal = np.array(self.data[:, 0:-1])[is_signal]
+        bg = np.array(self.data[:, 0:-1])[~is_signal]
+
+        with open(self.json) as f:
+            rpn = json.load(f)
+        for i, r in enumerate(rpn):
+            formula = Formula(8)
+            formula.rpn = r
+            var_signal = formula.calc(signal)
+            var_bg = formula.calc(bg)
+            sb = np.concatenate([var_signal, var_bg], 1)
+            mean = np.mean(sb)
+            std = np.std(sb)
+            xmin = mean - 1 * std
+            xmax = mean + 1 * std
+            hist_two(var_signal, var_bg, 100, [xmin, xmax],
+                     '{}_{}'.format(self.name, i), formula.get_formula(),
+                     label1='signal', label2='bg')
 
     def mass(self):
         x_train = [[x] for x
