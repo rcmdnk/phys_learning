@@ -63,18 +63,28 @@ class PhysLearning(VarLearning):
         with open(self.json) as f:
             rpn = json.load(f)
         for i, r in enumerate(rpn):
-            formula = Formula(8)
+            formula = Formula(8, var_labels=self.var_labels)
             formula.rpn = r
             var_signal = formula.calc(self.get_signal())
             var_bg = formula.calc(self.get_bg())
-            sb = np.concatenate([var_signal, var_bg], 1)
-            mean = np.mean(sb)
-            std = np.std(sb)
-            xmin = mean - 1 * std
-            xmax = mean + 1 * std
+            sb = np.concatenate([var_signal, var_bg], 0)
+
+            per10 = np.percentile(sb, 10)
+            per90 = np.percentile(sb, 90)
+            center = (per90 + per10) / 2
+            xmin = 2 * per10 - center
+            xmax = 2 * per90 - center
+
+            xlabel = formula.get_formula()
+            if len(xlabel) > 50:
+                xlabel = xlabel[:47] + '...'
+
             hist_two(var_signal, var_bg, 100, [xmin, xmax],
-                     '{}_{}'.format(self.name, i), formula.get_formula(),
+                     '{}_{}'.format(self.name, i), xlabel=xlabel,
                      label1='signal', label2='bg')
+            print('{}_{}'.format(self.name, i))
+        # return pseudo values
+        return None, None
 
     def x1(self):
         return self.one_var(0)
