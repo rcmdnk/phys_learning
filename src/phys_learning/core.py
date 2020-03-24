@@ -29,6 +29,14 @@ class PhysLearning(VarLearning):
         self.cmd = {'original_hist': self.original_hist,
                     'my_hist': self.my_hist,
                     'direct': self.direct,
+                    'x1': self.x1,
+                    'x2': self.x2,
+                    'y1': self.y2,
+                    'y2': self.y2,
+                    'z1': self.z1,
+                    'z2': self.z2,
+                    'e1': self.e1,
+                    'e1': self.e2,
                     'mass': self.mass,
                     'mass_pt': self.mass_pt,
                     'single': self.single,
@@ -37,23 +45,28 @@ class PhysLearning(VarLearning):
 
         self.json = json
 
+    def get_signal(self):
+        is_signal = np.array(self.data[:, -1], bool)
+        return np.array(self.data[:, 0:-1])[is_signal]
+
+    def get_bg(self):
+        is_signal = np.array(self.data[:, -1], bool)
+        return np.array(self.data[:, 0:-1])[~is_signal]
+
     def original_hist(self):
-        hist_two_phys(self.signal.data, self.bg.data, self.name + "_original")
+        hist_two_phys(self.get_signal(), self.get_bg(),
+                      self.name + "_original")
 
     def my_hist(self):
         import json
-        from collections import OrderedDict
-        is_signal = np.array(self.data[:, -1], bool)
-        signal = np.array(self.data[:, 0:-1])[is_signal]
-        bg = np.array(self.data[:, 0:-1])[~is_signal]
 
         with open(self.json) as f:
             rpn = json.load(f)
         for i, r in enumerate(rpn):
             formula = Formula(8)
             formula.rpn = r
-            var_signal = formula.calc(signal)
-            var_bg = formula.calc(bg)
+            var_signal = formula.calc(self.get_signal())
+            var_bg = formula.calc(self.get_bg())
             sb = np.concatenate([var_signal, var_bg], 1)
             mean = np.mean(sb)
             std = np.std(sb)
@@ -62,6 +75,40 @@ class PhysLearning(VarLearning):
             hist_two(var_signal, var_bg, 100, [xmin, xmax],
                      '{}_{}'.format(self.name, i), formula.get_formula(),
                      label1='signal', label2='bg')
+
+    def x1(self):
+        return self.one_var(0)
+
+    def x2(self):
+        return self.one_var(1)
+
+    def y1(self):
+        return self.one_var(2)
+
+    def y2(self):
+        return self.one_var(3)
+
+    def z1(self):
+        return self.one_var(4)
+
+    def z2(self):
+        return self.one_var(5)
+
+    def e1(self):
+        return self.one_var(6)
+
+    def e2(self):
+        return self.one_var(7)
+
+    def one_var(self, i):
+        x_train = self.x_train[:, i:i + 1]
+        x_test = self.x_test[:, i:i + 1]
+        self.make_classifier(self.name + "_" + self.formula.var_labels[i],
+                             x_train, x_test)
+        acc = self.classifier.run_all()
+        value = self.formula.var_labels[i]
+        print('{:.3f} {}'.format(acc, value))
+        return acc, value
 
     def mass(self):
         x_train = [[x] for x

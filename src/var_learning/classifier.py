@@ -1,13 +1,14 @@
 import time
+import numpy as np
 
 
 class Classifier():
     def __init__(self, x_train=None, x_test=None, y_train=None, y_test=None,
                  name="test", model=None, seed=None, verbose=0):
-        self.x_train = x_train
-        self.x_test = x_test
-        self.y_train = y_train
-        self.y_test = y_test
+        self.x_train = np.array(x_train)
+        self.x_test = np.array(x_test)
+        self.y_train = np.array(y_train)
+        self.y_test = np.array(y_test)
         self.name = name
         self.model = model
         self.seed = seed

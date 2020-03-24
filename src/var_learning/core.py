@@ -1,12 +1,14 @@
 import numpy as np
 from sklearn.model_selection import train_test_split
 from .formula import Formula
+from .plot import hist_two
 
 
 class VarLearning():
     def __init__(self, name='test', data=None, n_target=1,
                  test_size=0.2, var_labels=None, nvalue=3, shot=1,
-                 method='DNN', seed=None, verbose=0, **kw):
+                 use_int=False, int_check=False,
+                 method='Ada', seed=None, verbose=0, **kw):
         self.name = name
         self.n_target = n_target
         self.test_size = test_size
@@ -14,6 +16,8 @@ class VarLearning():
 
         self.nvalue = nvalue
         self.shot = shot
+        self.use_int = use_int
+        self.int_check = int_check
         self.method = method
 
         self.seed = seed
@@ -40,7 +44,10 @@ class VarLearning():
         if type(data) == str:
             with open(data) as f:
                 data = [line.split() for line in f.readlines()]
-        self.data = np.array(data)
+        if self.use_int:
+            self.data = np.array(data, int)
+        else:
+            self.data = np.array(data)
         self.separate_data()
 
         self.formula = Formula(n_values=self.data[0].size - self.n_target,
@@ -57,16 +64,30 @@ class VarLearning():
         self.y_test_array = np.array([x[0] for x in self.y_test])
 
     def run(self, cmd):
+        if not self.int_check:
+            return self.run_base(cmd)
+        else:
+            self.use_int = False
+            acc_non_int = self.run_base(cmd)
+            self.use_int = True
+            acc_int = self.run_base(cmd)
+            hist_two(acc_non_int, acc_int, bins=100, range=None,
+                     name=self.name + '_int_check', xlabel='accuracy',
+                     label1='Original', label2='Int')
+
+    def run_base(self, cmd):
         if cmd in self.cmd:
             if cmd == 'multishot':
                 self.cmd[cmd]()
             else:
                 if self.seed is None:
                     self.seed = 1
+                acc = []
                 for i in range(self.shot):
                     self.separate_data()
-                    self.cmd[cmd]()
+                    acc.append(self.cmd[cmd]()[0])
                     self.seed += 1
+                return acc
         else:
             raise RuntimeError('Command: {} is not available'.format(cmd))
 
