@@ -36,7 +36,7 @@ class PhysLearning(VarLearning):
                     'z1': self.z1,
                     'z2': self.z2,
                     'e1': self.e1,
-                    'e1': self.e2,
+                    'e2': self.e2,
                     'mass': self.mass,
                     'mass_pt': self.mass_pt,
                     'single': self.single,
@@ -89,22 +89,22 @@ class PhysLearning(VarLearning):
     def x1(self):
         return self.one_var(0)
 
-    def x2(self):
+    def y1(self):
         return self.one_var(1)
 
-    def y1(self):
+    def z1(self):
         return self.one_var(2)
 
-    def y2(self):
+    def e1(self):
         return self.one_var(3)
 
-    def z1(self):
+    def x2(self):
         return self.one_var(4)
 
-    def z2(self):
+    def y2(self):
         return self.one_var(5)
 
-    def e1(self):
+    def z2(self):
         return self.one_var(6)
 
     def e2(self):

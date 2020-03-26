@@ -1,16 +1,20 @@
 from keras.models import Sequential
 from keras.layers import Dense
 from keras.callbacks import EarlyStopping
+import tensorflow as tf
 from .classifier import Classifier
 
 
 class DNN(Classifier):
-    def __init__(self, layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
+    def __init__(self, use_gpu=True, gpu_device=0,
+                 layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
                  activation_out='sigmoid', optimizer='adam',
                  loss='binary_crossentropy', metrics=['accuracy'],
                  monitor='val_loss', patience=2, epochs=1000,
                  validation_split=0.1, **kw):
         super().__init__(**kw)
+        self.use_gpu = use_gpu
+        self.gpu_device = gpu_device
         self.layers = layers
         self.activation_out = activation_out
         self.optimizer = optimizer
@@ -21,6 +25,26 @@ class DNN(Classifier):
         self.epochs = epochs
         self.validation_split = validation_split
         self.hist = None
+
+        gpu = tf.config.experimental.list_physical_devices('GPU')
+        if len(gpu) > 0:
+            if self.use_gpu:
+                if self.gpu_device == "all":
+                    tf.config.experimental.set_visible_devices(gpu, 'GPU')
+                    for g in gpu:
+                        tf.config.experimental.set_memory_growth(g, True)
+                else:
+                    if len(gpu) > self.gpu_device:
+                        tf.config.experimental.set_visible_devices(
+                            gpu[self.gpu_device], 'GPU')
+                        tf.config.experimental.set_memory_growth(
+                            gpu[self.gpu_device], True)
+                    else:
+                        tf.config.experimental.set_visible_devices(
+                            gpu[0], 'GPU')
+                        tf.config.experimental.set_memory_growth(gpu[0], True)
+            else:
+                tf.config.experimental.set_visible_devices([], 'GPU')
 
     def new_model(self):
         self.model = Sequential()
