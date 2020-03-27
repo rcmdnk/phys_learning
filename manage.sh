@@ -9,9 +9,10 @@ usage="Usage: $0 <command>
 
 version_update () {
   version=$(grep "^version" pyproject.toml | cut -d '"' -f2)
-  echo "__version__ = \"$version\"" > ./src/phys_learning/__version__.py
+  echo "__version__ = '$version'" > ./src/phys_learning/__version__.py
   sed -i.bak "s/    assert __version__ == '.*'/    assert __version__ == '$version'/" tests/test_phys_learning.py
   rm -f tests/test_phys_learning.py.bak
+  git tag -a v"${version}"
 }
 
 case $1 in

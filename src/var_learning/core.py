@@ -6,13 +6,15 @@ from .plot import hist_two
 
 class VarLearning():
     def __init__(self, name='test', data=None, n_target=1,
-                 test_size=0.2, var_labels=None, nvalue=3, shot=1,
+                 test_size=0.2, var_labels=None, fix_dim=False,
+                 nvalue=3, shot=1,
                  use_int=False, int_check=False,
                  method='Ada', seed=None, verbose=0, **kw):
         self.name = name
         self.n_target = n_target
         self.test_size = test_size
         self.var_labels = var_labels
+        self.fix_dim = fix_dim
 
         self.nvalue = nvalue
         self.shot = shot
@@ -51,7 +53,8 @@ class VarLearning():
         self.separate_data()
 
         self.formula = Formula(n_values=self.data[0].size - self.n_target,
-                               var_labels=self.var_labels)
+                               var_labels=self.var_labels,
+                               fix_dim=self.fix_dim)
 
     def separate_data(self):
         x_data = self.data[:, 0: -1 * self.n_target]
@@ -122,28 +125,6 @@ class VarLearning():
         print('{:.3f} {}'.format(acc, values))
         return acc, values
 
-    def mass(self):
-        x_train = [[x] for x
-                   in mass(self.x_train[:, 0:4], self.x_train[:, 4:8])]
-        x_test = [[x] for x in mass(self.x_test[:, 0:4], self.x_test[:, 4:8])]
-        self.make_classifier(self.name + "_mass", x_train, x_test)
-        acc = self.classifier.run_all()
-        values = 'm12'
-        print('{:.3f} {}'.format(acc, values))
-        return acc, values
-
-    def mass_pt(self):
-        x_train = np.array([mass(self.x_train[:, 0:4], self.x_train[:, 4:8]),
-                            pt(self.x_train[:, 0], self.x_train[:, 1]),
-                            pt(self.x_train[:, 4], self.x_train[:, 5])]).T
-        x_test = np.array([mass(self.x_test[:, 0:4], self.x_test[:, 4:8]),
-                           pt(self.x_test[:, 0], self.x_test[:, 1]),
-                           pt(self.x_test[:, 4], self.x_test[:, 5])]).T
-        self.make_classifier(self.name + "_mass_pt", self.x_train, self.x_test)
-        acc = self.classifier.run_all()
-        values = 'm12, pt1, pt2'
-        print('{:.3f} {}'.format(acc, values))
-        return acc, values
 
     def single(self):
         acc = []
@@ -167,7 +148,8 @@ class VarLearning():
             formula.append(
                 Formula(n_values=self.x_train[0].size, min_use=1,
                         max_use=self.x_train[0].size * 2,
-                        var_labels=self.formula.var_labels))
+                        var_labels=self.formula.var_labels,
+                        fix_dim=self.fix_dim))
             formula[-1].make_rpn()
             x_train.append(formula[-1].calc(self.x_train))
             x_test.append(formula[-1].calc(self.x_test))

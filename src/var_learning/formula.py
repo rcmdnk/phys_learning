@@ -4,7 +4,7 @@ from numbers import Number
 
 class Formula():
     def __init__(self, n_values, min_use=1, max_use=1, var_labels=None,
-                 seed=None):
+                 seed=None, fix_dim=False):
         self.n_values = n_values
         self.min_use = min_use
         self.max_use = max_use
@@ -17,6 +17,8 @@ class Formula():
 
         self.seed = seed
         self.rand = np.random.RandomState(self.seed)
+
+        self.fix_dim = fix_dim
         self.rpn = []
 
         self.operators = [lambda x, y: x + y, lambda x, y: x - y,
@@ -35,24 +37,33 @@ class Formula():
 
     def make_rpn(self):
         self.rpn = []
-        stack = 0
+        stack = []
         n = self.rand.randint(self.min_use, self.max_use + 1)
         for i in range(n):
             val = self.rand.randint(0, self.n_values)
             self.rpn.append(val)
-            stack += 1
-            while stack > 1:
+            stack.append(1)
+            while len(stack) > 1:
                 ope = self.rand.randint(0, self.n_operators + 1)
                 if ope == self.n_operators:
                     break
+                if self.symbols[ope] in ("+", "-"):
+                    if self.fix_dim and stack[-1] != stack[-2]:
+                        break
+                    stack.pop()
+                elif self.symbols[ope] == "*":
+                    last_dim = stack.pop()
+                    stack[-1] += last_dim
+                else:
+                    last_dim = stack.pop()
+                    stack[-1] -= last_dim
                 self.rpn.append(ope - self.n_operators)
-                stack -= 1
-        while stack > 1:
+        while len(stack) > 1:
             ope = self.rand.randint(0, self.n_operators)
             if ope == self.n_operators:
                 break
             self.rpn.append(ope - self.n_operators)
-            stack -= 1
+            stack.pop()
 
     def get_formula(self):
         stack = []

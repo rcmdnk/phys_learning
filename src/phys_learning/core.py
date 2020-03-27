@@ -1,5 +1,4 @@
 import numpy as np
-from sklearn.model_selection import train_test_split
 from var_learning.core import VarLearning
 from var_learning.formula import Formula
 from var_learning.plot import hist_two
@@ -26,22 +25,18 @@ class PhysLearning(VarLearning):
 
         super().__init__(data=data, var_labels=var_labels, **kw)
 
-        self.cmd = {'original_hist': self.original_hist,
-                    'my_hist': self.my_hist,
-                    'direct': self.direct,
-                    'x1': self.x1,
-                    'x2': self.x2,
-                    'y1': self.y2,
-                    'y2': self.y2,
-                    'z1': self.z1,
-                    'z2': self.z2,
-                    'e1': self.e1,
-                    'e2': self.e2,
-                    'mass': self.mass,
-                    'mass_pt': self.mass_pt,
-                    'single': self.single,
-                    'random_shot': self.random_shot,
-                    'multishot': self.multishot}
+        self.cmd.update({'original_hist': self.original_hist,
+                         'my_hist': self.my_hist,
+                         'x1': self.x1,
+                         'x2': self.x2,
+                         'y1': self.y2,
+                         'y2': self.y2,
+                         'z1': self.z1,
+                         'z2': self.z2,
+                         'e1': self.e1,
+                         'e2': self.e2,
+                         'mass': self.mass,
+                         'mass_pt': self.mass_pt})
 
         self.json = json
 
@@ -137,82 +132,11 @@ class PhysLearning(VarLearning):
         x_test = np.array([mass(self.x_test[:, 0:4], self.x_test[:, 4:8]),
                            pt(self.x_test[:, 0], self.x_test[:, 1]),
                            pt(self.x_test[:, 4], self.x_test[:, 5])]).T
-        self.make_classifier(self.name + "_mass_pt", self.x_train, self.x_test)
+        self.make_classifier(self.name + "_mass_pt", x_train, x_test)
         acc = self.classifier.run_all()
         values = 'm12, pt1, pt2'
         print('{:.3f} {}'.format(acc, values))
         return acc, values
-
-    def single(self):
-        acc = []
-        value = []
-        for i in range(self.x_train[0].size):
-            x_train = self.x_train[:, i:i + 1]
-            x_test = self.x_test[:, i:i + 1]
-            self.make_classifier(self.name + "_" + self.formula.var_labels[i],
-                                 x_train, x_test)
-            acc.append(self.classifier.run_all())
-            value.append(self.formula.var_labels[i])
-            print('{:.3f} {}'.format(acc[-1], value[-1]))
-        return acc, value
-
-    def random_shot(self):
-        x_train = []
-        x_test = []
-        formula = []
-
-        for i in range(self.nvalue):
-            formula.append(
-                Formula(n_values=self.x_train[0].size, min_use=1,
-                        max_use=self.x_train[0].size * 2,
-                        var_labels=self.formula.var_labels))
-            formula[-1].make_rpn()
-            x_train.append(formula[-1].calc(self.x_train))
-            x_test.append(formula[-1].calc(self.x_test))
-
-        x_train = np.concatenate(x_train, 1)
-        x_test = np.concatenate(x_test, 1)
-
-        self.make_classifier(self.name + "_random", x_train, x_test)
-        acc = self.classifier.run_all()
-
-        values = '{} {}'.format([f.rpn for f in formula],
-                                [f.get_formula() for f in formula])
-        if self.verbose:
-            print('{:.3f} {}'.format(acc, values))
-        return acc, values, formula
-
-    def multishot(self):
-        import datetime
-        print('{} Start multishot: shot={}, nvalue={}'.format(
-            datetime.datetime.now(), self.shot, self.nvalue))
-        top_history = []
-        model_list = []
-        for i in range(self.shot):
-            acc, values, formula = self.random_shot()
-            if len(model_list) < 5:
-                model_list.append((acc, values, formula))
-                model_list.sort(key=lambda x: -x[0])
-            else:
-                if model_list[-1][0] < acc:
-                    model_list.pop()
-                    model_list.append((acc, values, formula))
-                    model_list.sort(key=lambda x: -x[0])
-            if i % 100 == 0:
-                top_history.append(model_list[0][0])
-                print(datetime.datetime.now())
-                print("Top accuracy history: ", end='')
-                for h in top_history:
-                    print('{:.3f}, '.format(h), end='')
-                print('')
-                print("Top 5 value combination list at {}".format(i))
-                for x in model_list:
-                    print('{:.3f}: '.format(x[0]), end='')
-                    for f in x[2]:
-                        print('{}, '.format(f.rpn), end='')
-                    for f in x[2]:
-                        print('{}, '.format(f.get_formula()), end='')
-                    print('')
 
     def prediction_check(self, model, x_test):
         predictions = model.predict(x_test)
@@ -221,7 +145,7 @@ class PhysLearning(VarLearning):
         bg_sig = []
         bg_bg = []
         for i in range(predictions.size):
-            if y_test[i] == 1:
+            if self.y_test[i] == 1:
                 if predictions[i] > 0.5:
                     sig_sig.append(self.x_test[i])
                 else:
@@ -234,5 +158,5 @@ class PhysLearning(VarLearning):
         sig_bg = np.array(sig_bg)
         bg_sig = np.array(bg_sig)
         bg_bg = np.array(bg_bg)
-        hist_two_phys(sig_sig, sig_bg, name + "_sig_check")
-        hist_two_phys(bg_sig, bg_bg, name + "_bg_check")
+        hist_two_phys(sig_sig, sig_bg, self.name + "_sig_check")
+        hist_two_phys(bg_sig, bg_bg, self.name + "_bg_check")
