@@ -9,7 +9,7 @@ class VarLearning():
                  test_size=0.2, var_labels=None, fix_dim=False,
                  nvalue=3, shot=1,
                  use_int=False, int_check=False,
-                 method='Ada', seed=None, verbose=0, **kw):
+                 method='Ada', seed=None, json=None, verbose=0, **kw):
         self.name = name
         self.n_target = n_target
         self.test_size = test_size
@@ -34,10 +34,13 @@ class VarLearning():
 
         self.classifier = None
 
-        self.cmd = {'direct': self.direct,
+        self.cmd = {'json': self.json,
+                    'direct': self.direct,
                     'single': self.single,
                     'random_shot': self.random_shot,
                     'multishot': self.multishot}
+
+        self.json = json
 
     def set_data(self, data):
         if data is None:
@@ -118,13 +121,40 @@ class VarLearning():
             name=name, seed=self.seed, verbose=self.verbose,
             **self.kw)
 
+    def json(self):
+        import json
+
+        with open(self.json) as f:
+            rpn = json.load(f)
+
+        x_train = []
+        x_test = []
+        formula = []
+        for r in rpn:
+            f = Formula(var_labels=self.var_labels)
+            f.rpn = r
+            formula.append(f)
+            x_train.append(formula[-1].calc(self.x_train))
+            x_test.append(formula[-1].calc(self.x_test))
+
+        x_train = np.concatenate(x_train, 1)
+        x_test = np.concatenate(x_test, 1)
+
+        self.make_classifier(self.name + "_json", x_train, x_test)
+        acc = self.classifier.run_all()
+
+        values = '{} {}'.format([f.rpn for f in formula],
+                                [f.get_formula() for f in formula])
+        if self.verbose:
+            print('{:.3f} {}'.format(acc, values))
+        return acc, values, formula
+
     def direct(self):
         self.make_classifier(self.name + "_direct", self.x_train, self.x_test)
         acc = self.classifier.run_all()
         values = ', '.join(self.formula.var_labels)
         print('{:.3f} {}'.format(acc, values))
         return acc, values
-
 
     def single(self):
         acc = []

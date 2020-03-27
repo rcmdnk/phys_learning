@@ -3,7 +3,7 @@ from numbers import Number
 
 
 class Formula():
-    def __init__(self, n_values, min_use=1, max_use=1, var_labels=None,
+    def __init__(self, n_values=1, min_use=1, max_use=1, var_labels=None,
                  seed=None, fix_dim=False):
         self.n_values = n_values
         self.min_use = min_use

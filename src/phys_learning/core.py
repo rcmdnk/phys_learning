@@ -10,7 +10,6 @@ class PhysLearning(VarLearning):
     def __init__(self, signal=None, bg=None,
                  var_labels=["px1", "py1", "pz1", "e1",
                              "px2", "py2", "pz2", "e2"],
-                 json=None,
                  **kw):
         data = kw['data'] if 'data' in kw else None
         if data is None:
@@ -37,8 +36,6 @@ class PhysLearning(VarLearning):
                          'e2': self.e2,
                          'mass': self.mass,
                          'mass_pt': self.mass_pt})
-
-        self.json = json
 
     def get_signal(self):
         is_signal = np.array(self.data[:, -1], bool)
