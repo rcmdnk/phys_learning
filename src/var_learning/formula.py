@@ -3,16 +3,16 @@ from numbers import Number
 
 
 class Formula():
-    def __init__(self, n_values=1, min_use=1, max_use=1, var_labels=None,
+    def __init__(self, input_values=1, min_use=1, max_use=1, var_labels=None,
                  seed=None, fix_dim=False):
-        self.n_values = n_values
+        self.input_values = input_values
         self.min_use = min_use
         self.max_use = max_use
         if var_labels is not None:
             self.var_labels = var_labels
         else:
             self.var_labels = []
-            for i in range(n_values):
+            for i in range(input_values):
                 self.var_labels.append('x{}'.format(i))
 
         self.seed = seed
@@ -40,7 +40,7 @@ class Formula():
         stack = []
         n = self.rand.randint(self.min_use, self.max_use + 1)
         for i in range(n):
-            val = self.rand.randint(0, self.n_values)
+            val = self.rand.randint(0, self.input_values)
             self.rpn.append(val)
             stack.append(1)
             while len(stack) > 1:

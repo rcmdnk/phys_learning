@@ -4,7 +4,9 @@ import numpy as np
 
 class Classifier():
     def __init__(self, x_train=None, x_test=None, y_train=None, y_test=None,
-                 name="test", model=None, seed=None, verbose=0):
+                 name="test", model=None, seed=None,
+                 use_gpu=True, gpu_device=0,
+                 verbose=0):
         self.x_train = np.array(x_train)
         self.x_test = np.array(x_test)
         self.y_train = np.array(y_train)
@@ -12,6 +14,8 @@ class Classifier():
         self.name = name
         self.model = model
         self.seed = seed
+        self.use_gpu = use_gpu
+        self.gpu_device = gpu_device
         self.acc = None
         self.verbose = verbose
 

@@ -6,15 +6,13 @@ from .classifier import Classifier
 
 
 class DNN(Classifier):
-    def __init__(self, use_gpu=True, gpu_device=0,
+    def __init__(self,
                  layers=[(8, 'sigmoid'), (8, 'sigmoid'), (8, 'sigmoid')],
                  activation_out='sigmoid', optimizer='adam',
                  loss='binary_crossentropy', metrics=['accuracy'],
                  monitor='val_loss', patience=2, epochs=1000,
                  validation_split=0.1, **kw):
         super().__init__(**kw)
-        self.use_gpu = use_gpu
-        self.gpu_device = gpu_device
         self.layers = layers
         self.activation_out = activation_out
         self.optimizer = optimizer

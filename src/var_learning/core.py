@@ -55,7 +55,7 @@ class VarLearning():
             self.data = np.array(data)
         self.separate_data()
 
-        self.formula = Formula(n_values=self.data[0].size - self.n_target,
+        self.formula = Formula(input_values=self.data[0].size - self.n_target,
                                var_labels=self.var_labels,
                                fix_dim=self.fix_dim)
 
@@ -176,7 +176,7 @@ class VarLearning():
 
         for i in range(self.nvalue):
             formula.append(
-                Formula(n_values=self.x_train[0].size, min_use=1,
+                Formula(input_values=self.x_train[0].size, min_use=1,
                         max_use=self.x_train[0].size * 2,
                         var_labels=self.formula.var_labels,
                         fix_dim=self.fix_dim))
