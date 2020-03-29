@@ -7,7 +7,7 @@ from .plot import hist_two
 class VarLearning():
     def __init__(self, name='test', data=None, n_target=1,
                  test_size=0.2, var_labels=None, fix_dim=False,
-                 nvalue=3, shot=1,
+                 n_value=3, min_use=None, max_use=None, shot=1,
                  use_int=False, int_check=False,
                  method='Ada', seed=None, json=None, verbose=0, **kw):
         self.name = name
@@ -16,7 +16,9 @@ class VarLearning():
         self.var_labels = var_labels
         self.fix_dim = fix_dim
 
-        self.nvalue = nvalue
+        self.n_value = n_value
+        self.min_use = min_use
+        self.max_use = max_use
         self.shot = shot
         self.use_int = use_int
         self.int_check = int_check
@@ -55,7 +57,8 @@ class VarLearning():
             self.data = np.array(data)
         self.separate_data()
 
-        self.formula = Formula(input_values=self.data[0].size - self.n_target,
+        self.formula = Formula(n_input=self.data[0].size - self.n_target,
+                               min_use=self.min_use, max_use=self.max_use,
                                var_labels=self.var_labels,
                                fix_dim=self.fix_dim)
 
@@ -174,10 +177,10 @@ class VarLearning():
         x_test = []
         formula = []
 
-        for i in range(self.nvalue):
+        for i in range(self.n_value):
             formula.append(
-                Formula(input_values=self.x_train[0].size, min_use=1,
-                        max_use=self.x_train[0].size * 2,
+                Formula(n_input=self.x_train[0].size,
+                        min_use=self.min_use, max_use=self.max_use,
                         var_labels=self.formula.var_labels,
                         fix_dim=self.fix_dim))
             formula[-1].make_rpn()
@@ -198,8 +201,8 @@ class VarLearning():
 
     def multishot(self):
         import datetime
-        print('{} Start multishot: shot={}, nvalue={}'.format(
-            datetime.datetime.now(), self.shot, self.nvalue))
+        print('{} Start multishot: shot={}, n_value={}'.format(
+            datetime.datetime.now(), self.shot, self.n_value))
         top_history = []
         model_list = []
         for i in range(self.shot):
@@ -227,3 +230,11 @@ class VarLearning():
                     for f in x[2]:
                         print('{}, '.format(f.get_formula()), end='')
                     print('')
+        print("Top 5 value combination list at {}".format(self.shot))
+        for x in model_list:
+            print('{:.3f}: '.format(x[0]), end='')
+            for f in x[2]:
+                print('{}, '.format(f.rpn), end='')
+            for f in x[2]:
+                print('{}, '.format(f.get_formula()), end='')
+            print('')
