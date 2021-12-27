@@ -21,7 +21,7 @@ tensorflow = "^2.1.0"
 tensorflow-estimator = "^2.1.0"
 
 [tool.poetry.dev-dependencies]
-pytest = "^3.0"
+pytest = "^6.2"
 
 [tool.poetry.scripts]
 phys_learning = "phys_learning:main"
